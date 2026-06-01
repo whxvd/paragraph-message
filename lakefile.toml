@@ -1,0 +1,12 @@
+name = "paragraph-message"
+version = "0.1.0"
+defaultTargets = ["paragraph-message"]
+
+[[require]]
+name = "Qq"
+git = "https://github.com/leanprover-community/quote4"
+rev = "master"
+
+[[lean_lib]]
+name = "paragraph-message"
+roots = ["Paragraph", "Debug"]

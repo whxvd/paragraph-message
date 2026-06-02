@@ -16,15 +16,22 @@ def eraseTags : Format → Format
   | tag _ f => eraseTags f
   | f => f
 
-def hasHardLineBreak : Format → Bool
-  | nil => false
-  | line => false
-  | align _ => false
-  | text s => s.find? "\n" |>.isSome
-  | nest _ f => hasHardLineBreak f
-  | append f₁ f₂ => hasHardLineBreak f₁ || hasHardLineBreak f₂
-  | group f _ => hasHardLineBreak f
-  | tag _ f => hasHardLineBreak f
+def hasHardLineBreak (f : Format) : Bool :=
+  hasLineWithoutGroup f || hasNewlineInText f
+where
+  hasLineWithoutGroup : Format → Bool
+    | line => true | group _ _ => false
+    | nil | align _ | text _ => false
+    | nest _ f => hasLineWithoutGroup f
+    | append f₁ f₂ => hasLineWithoutGroup f₁ || hasLineWithoutGroup f₂
+    | tag _ f => hasLineWithoutGroup f
+  hasNewlineInText : Format → Bool
+    | text s => s.find? "\n" |>.isSome
+    | nil | line | align _ => false
+    | nest _ f => hasNewlineInText f
+    | append f₁ f₂ => hasNewlineInText f₁ || hasNewlineInText f₂
+    | group f _ => hasNewlineInText f
+    | tag _ f => hasNewlineInText f
 
 end Std.Format
 

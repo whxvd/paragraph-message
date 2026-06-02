@@ -4,15 +4,6 @@ open Lean Qq
 
 namespace Lean.MessageData
 
-/--
-Turn `MessageData` into `Format` in `MetaM`.
-
-With just `MessageData.format` and no context, `MessageData.ofExpr` (aka
-`ToMessageData Expr`) uses `toString`.
--/
-def format' (msg : MessageData) : MetaM Format := do
-  msg.format (ctx? := some ⟨← getEnv, ← getMCtx, ← getLCtx, ← getOptions⟩)
-
 inductive ParagraphElement
   /--
   An unbreakable chunk of text
@@ -20,10 +11,7 @@ inductive ParagraphElement
   | text (s : String)
 
   /--
-  An inline message. May actually turn out not inline when it would not fit. An
-  inline message always has an implicit soft break already at the start, but
-  none at the end, just like, and for the same reasons as `Lean.indentD` has an
-  `Std.Format.line` at the beginning, but not at the end.
+  An inline message. May actually turn out not inline when it would not fit.
   -/
   | inline (m : MessageData)
 
@@ -56,8 +44,6 @@ def ofParagraph (p : Paragraph) : MessageData :=
     | .inline m => m
     | .line => .ofFormat .line)
   .fill m
--- where
-  -- inline : MessageData → MessageData := indentD ∘ group
 
 instance: Append Paragraph := ⟨List.append⟩
 instance: HAppend ParagraphElement ParagraphElement Paragraph := ⟨([·,·])⟩
@@ -68,14 +54,20 @@ instance: HAppend Paragraph ParagraphElement Paragraph := ⟨List.concat⟩
 Turn a `String` into a `Paragraph` by turning any whitespace into soft line
 breaks
 -/
-def Paragraph.ofString (s : String) : Paragraph :=
-  let l : List ParagraphElement :=
+def Paragraph.ofString (s : String) : Paragraph := Id.run do
+  let mut l : List ParagraphElement :=
     (s.split Char.isWhitespace).toList
     |>.filter (not ·.isEmpty)
     |>.map (.text ·.copy)
-    |>.foldl (init := []) (· ++ [·, .line])
-  if s.startsWith Char.isWhitespace
-  then .line :: l else l
+    |> join
+  if s.startsWith Char.isWhitespace then l := .line :: l
+  if s.endsWith   Char.isWhitespace then l := l.concat .line
+  return l
+where
+  join : List ParagraphElement → List ParagraphElement
+    | [] => []
+    | [e] => [e]
+    | e::es => e :: .line :: join es
 
 /--
 Turn a `String` into a `Paragraph` as a single unbreakable thing

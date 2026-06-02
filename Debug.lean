@@ -2,7 +2,7 @@ import Lean
 import Paragraph
 open Lean
 
--- Just for introspection and debugging:
+-- Helpers for introspection and debugging
 
 namespace Std.Format
 
@@ -28,12 +28,16 @@ def hasHardLineBreak : Format → Bool
 
 end Std.Format
 
-variable {α : Type} [ToMessageData α] in
-def logFormat (a : α) : MetaM Unit := do
-  let f ← (toMessageData a).format'
-  logInfo <| repr <| f.eraseTags
-
 namespace Lean.MessageData
+
+/--
+Turn `MessageData` into `Format` in `MetaM`.
+
+With just `MessageData.format` and no context, `MessageData.ofExpr` (aka
+`ToMessageData Expr`) uses `toString`.
+-/
+def format' (msg : MessageData) : MetaM Format := do
+  msg.format (ctx? := some ⟨← getEnv, ← getMCtx, ← getLCtx, ← getOptions⟩)
 
 instance: Repr ParagraphElement where
   reprPrec e _ := match e with
@@ -49,3 +53,8 @@ def Paragraph.pretty (p : Paragraph) (width : Nat := 45) : MetaM String := do
   return f.pretty (width := width)
 
 end Lean.MessageData
+
+variable {α : Type} [ToMessageData α] in
+def logFormat (a : α) : MetaM Unit := do
+  let f ← (toMessageData a).format'
+  logInfo <| repr <| f.eraseTags

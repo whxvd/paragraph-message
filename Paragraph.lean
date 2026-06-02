@@ -59,15 +59,10 @@ def Paragraph.ofString (s : String) : Paragraph := Id.run do
     (s.split Char.isWhitespace).toList
     |>.filter (not ·.isEmpty)
     |>.map (.text ·.copy)
-    |> join
+    |>.intersperse .line
   if s.startsWith Char.isWhitespace then l := .line :: l
   if s.endsWith   Char.isWhitespace then l := l.concat .line
   return l
-where
-  join : List ParagraphElement → List ParagraphElement
-    | [] => []
-    | [e] => [e]
-    | e::es => e :: .line :: join es
 
 /--
 Turn a `String` into a `Paragraph` as a single unbreakable thing

@@ -47,10 +47,12 @@ def format' (msg : MessageData) : MetaM Format := do
   msg.format (ctx? := some ⟨← getEnv, ← getMCtx, ← getLCtx, ← getOptions⟩)
 
 instance: Repr ParagraphElement where
-  reprPrec e _ := match e with
+  reprPrec e p := match e with
     | .line => .text "line"
-    | .text s => .text s!"text {s.quote}"
-    | .inline _ => .text "inline"
+    | .text s =>
+      Repr.addAppParen (prec := p) <| .group <| .nestD <|
+        .text "text" ++ .line ++ .text s.quote
+    | .inline _ => Repr.addAppParen (prec := p) <| .text "inline _"
 
 instance: Repr Paragraph := inferInstanceAs (Repr (List ParagraphElement))
 

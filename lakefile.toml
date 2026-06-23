@@ -1,6 +1,7 @@
 name = "paragraph-message"
 version = "0.1.0"
 defaultTargets = ["paragraph-message"]
+testDriver = "test"
 
 [[require]]
 name = "Qq"
@@ -10,3 +11,7 @@ rev = "master"
 [[lean_lib]]
 name = "paragraph-message"
 roots = ["Paragraph", "Debug"]
+
+[[lean_lib]]
+name = "test"
+roots = ["Examples"]

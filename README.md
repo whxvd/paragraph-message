@@ -1,1 +1,3 @@
-An experiment in adding paragraph formatting to or on top of `Lean.MessageData`.
+Experiment in adding paragraph formatting on top of `Lean.MessageData`.
+
+Note: This uses a non-official toolchain from https://github.com/whxvd/lean4. Reason: Official Lean's `MessageData.group` currently has no `FlattenBehavior` as `Format.group` has. This experiment in its current state needs `MessageData.group` with `FlattenBehavior.fill`. Later, I realized, that I could/should do the whole experiment with just `Format`. But that has to wait for another time.
